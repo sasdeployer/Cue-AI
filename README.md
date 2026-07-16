@@ -17,12 +17,17 @@ One prompt in — your agent builds a deck where every slide is a live, responsi
 
 ---
 
-Slides have been static for forty years. Bolt Slides makes them software:
+## Why we made this
 
-- **Make your slides work for you.** Selling a house? Add a 3D walkthrough, a mortgage calculator, an interactive neighborhood map.
-- **Make the room build on them.** Your team drops ideas onto a shared whiteboard, live, while you present.
-- **Make the data answer questions.** Filter the table, sort the chart, spin a 3D model, drill into the number that matters — mid-presentation.
-- **Every screen is a front row seat.** Slides are responsive web layouts, not a fixed 1080p canvas — the audience can follow along from their phones.
+AI for slides is awesome, but the outputs tend to be slop: generic layouts, walls of bullets, nothing you'd be proud to present.
+
+And also: why are slides still *static*? Agents can build *anything*. What would it look like if you (tastefully) turned them loose on slides?
+
+Bolt Slides is what we built to find out: building blocks any agent (Claude Code, Codex, Cursor, Bolt) can compose stunning, compelling presentations with. Bespoke layouts, real typography, considered animations, interactive anything. Every deck is a real web app, responsive on any screen, shared as a link.
+
+**Taste comes standard.**
+
+[See what that looks like →](link-to-tweet-thread)
 
 Under the hood it's a classic paged deck — Slidev-style dock, thumbnail sidebar, grid overview, click-builds, annotations, synced presenter mode — where each slide is a plain React component. If you can build it for the web, you can present it.
 
