@@ -11,7 +11,7 @@ One prompt in — your agent builds a deck where every slide is a live, responsi
 [![Open in StackBlitz](https://img.shields.io/badge/Open_in-StackBlitz-1389fd?style=flat-square)](https://stackblitz.com/github/stackblitz/bolt-slides)
 [![License: MIT](https://img.shields.io/badge/License-MIT-c8f56e?style=flat-square)](./LICENSE)
 
-<img src=".github/assets/cover.png" alt="Bolt Slides — cover slide with the floating dock" width="820" />
+<img src=".github/assets/demo.gif" alt="Bolt Slides — from one prompt in Bolt to a finished interactive deck" width="820" />
 
 </div>
 
@@ -27,7 +27,7 @@ Bolt Slides is what we built to find out: building blocks any agent (Claude Code
 
 **Taste comes standard.**
 
-[See what that looks like →](link-to-tweet-thread)
+[See what that looks like →](https://x.com/boltdotnew/status/2077770386444341332?s=20)
 
 Under the hood it's a classic paged deck — Slidev-style dock, thumbnail sidebar, grid overview, click-builds, annotations, synced presenter mode — where each slide is a plain React component. If you can build it for the web, you can present it.
 
