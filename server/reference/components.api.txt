@@ -1,0 +1,116 @@
+### Annotator
+export type Stroke = { tool: Tool;
+props: ({ slide, store, active, }: { slide: number; store: Record<number, Stroke[]>; active: boolean; })
+
+### Build
+props: ({ at = 1, y = 16, children, className, style, }: { at?: number; y?: number; children: ReactNode; className?: string; style?: CSSProperties; })
+
+### Deck
+props: ({ children }: { children: ReactNode })
+
+### Reveal
+props: ({ children, y = 26, delay = 0, className, style, }: { children: ReactNode; y?: number; delay?: number; className?: string; style?: CSSProperties; })
+
+### Slide
+props: ({ children, center, full, className = '', style, }: { children: ReactNode; center?: boolean; full?: boolean; nav?: string; notes?: string; className?: string; style?: CSSProperties; })
+
+### icons
+props: ()
+
+### Accordion
+export type AccordionItem = { title: string;
+props: ({ items, single = true, defaultOpen = 0, }: { items: AccordionItem[]; single?: boolean; defaultOpen?: number | null; })
+
+### Agenda
+export type AgendaItem = string | { title: string;
+props: ({ kicker, title, items, }: { kicker?: string; title?: string; items: AgendaItem[]; nav?: string; notes?: string; })
+
+### Bento
+export type BentoTile = { k?: string;
+props: ({ kicker, title, tiles, }: { kicker?: string; title?: string; tiles: BentoTile[]; nav?: string; notes?: string; })
+
+### BigNumber
+props: ({ kicker, value, caption, foot, }: { kicker?: string; value: ReactNode; caption?: ReactNode; foot?: string; nav?: string; notes?: string; })
+
+### BrowserFrame
+props: ({ url = 'app.acme.com', children, }: { url?: string; children: ReactNode; })
+
+### Charts
+props: ()
+
+### Chat
+export type ChatMessage = { from: 'user' | 'ai';
+props: ({ kicker, title, name = 'Assistant', messages, }: { kicker?: string; title?: string; name?: string; messages: ChatMessage[]; nav?: string; notes?: string; })
+
+### CodeWindow
+props: ({ title = 'app.tsx', code, highlight = [], }: { title?: string; code: string; highlight?: number[]; })
+
+### Comparison
+export type CompRow = { label: string;
+props: ({ cols, rows, highlight = 0, }: { cols: string[]; rows: CompRow[]; highlight?: number; })
+
+### Contrast
+export type ContrastPanel = { label?: string;
+props: ({ kicker, title, left, right, }: { kicker?: string; title?: string; left: ContrastPanel; right: ContrastPanel; nav?: string; notes?: string; })
+
+### CountUp
+props: ({ to, from = 0, duration = 1500, decimals = 0, prefix = '', suffix = '', }: { to: number; from?: number; duration?: number; decimals?: number; prefix?: string; suffix?: string; })
+
+### Cover
+props: ({ kicker, title, subtitle, image, foot, }: { kicker?: string; title: ReactNode; subtitle?: ReactNode; image?: string; foot?: string; nav?: string; notes?: string; })
+
+### Globe
+export type GlobeMarker = { location: [number, number];
+export type GlobeArc = { from: [number, number];
+export type GlobeStat = { value: ReactNode;
+props: ({ kicker, title, body, markers, arcs, stats, flip, }: { kicker?: string; title: ReactNode; body?: ReactNode; markers: GlobeMarker[]; arcs?: GlobeArc[]; stats?: GlobeStat[]; flip?: boolean; nav?: string; notes?: string; })
+
+### Marquee
+props: ({ items, duration = 26, }: { items: string[]; duration?: number; })
+
+### Pricing
+export type Tier = { name: string;
+props: ({ kicker, title, tiers, }: { kicker?: string; title?: string; tiers: Tier[]; nav?: string; notes?: string; })
+
+### Quote
+props: ({ text, name, role, img, image, }: { text: string; name?: string; role?: string; img?: string; image?: string; nav?: string; notes?: string; })
+
+### Section
+props: ({ n, kicker, title, image, }: { n?: number | string; kicker?: string; title: ReactNode; image?: string; nav?: string; notes?: string; })
+
+### Split
+props: ({ kicker, title, body, media, flip, }: { kicker?: string; title: ReactNode; body?: ReactNode; media: ReactNode; flip?: boolean; nav?: string; notes?: string; })
+
+### SpotlightCard
+props: ({ children }: { children: ReactNode })
+
+### StatGrid
+export type Stat = { value?: ReactNode;
+props: ({ kicker, title, stats, }: { kicker?: string; title?: string; stats: Stat[]; nav?: string; notes?: string; })
+
+### Steps
+export type Step = { title: string;
+props: ({ kicker, title, items, }: { kicker?: string; title?: string; items: Step[]; nav?: string; notes?: string; })
+
+### Table
+export type TableColumn = | string | { label: string;
+export type TableCell = string | number | ReactNode;
+props: ({ columns, rows, highlightCol, highlightRow, caption, }: { columns: TableColumn[]; rows: TableCell[][]; highlightCol?: number; highlightRow?: number; caption?: string; })
+
+### Tabs
+export type Tab = { label: string;
+props: ({ tabs, defaultTab = 0, }: { tabs: Tab[]; defaultTab?: number; })
+
+### Team
+export type Person = { name: string;
+props: ({ kicker, title, people, }: { kicker?: string; title?: string; people: Person[]; nav?: string; notes?: string; })
+
+### TiltCard
+props: ({ children }: { children: ReactNode })
+
+### Timeline
+export type TimelineItem = { time: string;
+props: ({ items }: { items: TimelineItem[] })
+
+### VisualDashboard
+props: ()
