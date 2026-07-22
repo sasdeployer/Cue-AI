@@ -82,24 +82,10 @@ export default function PromptBox({
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           marginTop: compact ? 8 : 12,
         }}
       >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 7,
-            padding: '5px 10px',
-            borderRadius: 8,
-            border: glass ? '1px solid rgba(247,246,242,0.2)' : '1px solid var(--border)',
-            color: glass ? 'rgba(247,246,242,0.75)' : 'var(--fg-muted)',
-            fontSize: 12.5,
-          }}
-        >
-          <span style={{ fontSize: 13 }}>⚡</span> Cue Max
-        </div>
         <button
           onClick={submit}
           disabled={busy || !value.trim()}

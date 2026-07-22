@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { Aperture } from 'lucide-react';
 
 export default function Logo({ size = 20, light }: { size?: number; light?: boolean }) {
   return (
@@ -23,13 +24,11 @@ export default function Logo({ size = 20, light }: { size?: number; light?: bool
           height: size + 8,
           borderRadius: 8,
           background: 'var(--accent)',
-          color: 'var(--accent-ink)',
-          fontSize: size - 3,
         }}
       >
-        ⚡
+        <Aperture size={size - 3} color="#fff" strokeWidth={2} />
       </span>
-      Cue<span style={{ color: light ? 'rgba(247,246,242,0.55)' : 'var(--fg-dim)', fontWeight: 500 }}>AI</span>
+      Cue
     </Link>
   );
 }
