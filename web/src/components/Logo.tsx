@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 
-export default function Logo({ size = 20 }: { size?: number }) {
+export default function Logo({ size = 20, light }: { size?: number; light?: boolean }) {
   return (
     <Link
       to="/"
@@ -11,6 +11,7 @@ export default function Logo({ size = 20 }: { size?: number }) {
         fontWeight: 650,
         fontSize: size,
         letterSpacing: '-0.02em',
+        color: light ? '#F7F6F2' : undefined,
       }}
     >
       <span
@@ -28,7 +29,7 @@ export default function Logo({ size = 20 }: { size?: number }) {
       >
         ⚡
       </span>
-      Cue<span style={{ color: 'var(--fg-dim)', fontWeight: 500 }}>AI</span>
+      Cue<span style={{ color: light ? 'rgba(247,246,242,0.55)' : 'var(--fg-dim)', fontWeight: 500 }}>AI</span>
     </Link>
   );
 }

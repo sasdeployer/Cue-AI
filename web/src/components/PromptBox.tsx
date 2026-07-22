@@ -6,6 +6,8 @@ interface Props {
   autoFocus?: boolean;
   compact?: boolean;
   busy?: boolean;
+  /** Frosted glass treatment for use over a photo/art background (landing hero). */
+  glass?: boolean;
 }
 
 export default function PromptBox({
@@ -14,6 +16,7 @@ export default function PromptBox({
   autoFocus,
   compact,
   busy,
+  glass,
 }: Props) {
   const [value, setValue] = useState('');
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -40,11 +43,13 @@ export default function PromptBox({
   return (
     <div
       style={{
-        border: '1px solid var(--border-2)',
-        background: 'var(--surface)',
+        border: glass ? '1px solid rgba(247,246,242,0.18)' : '1px solid var(--border-2)',
+        background: glass ? 'rgba(20,18,14,0.38)' : 'var(--surface)',
+        backdropFilter: glass ? 'blur(24px) saturate(160%)' : undefined,
+        WebkitBackdropFilter: glass ? 'blur(24px) saturate(160%)' : undefined,
         borderRadius: compact ? 14 : 18,
         padding: compact ? 12 : 18,
-        boxShadow: '0 12px 40px -12px rgba(17,17,17,0.16)',
+        boxShadow: glass ? '0 20px 60px -20px rgba(0,0,0,0.5)' : '0 12px 40px -12px rgba(17,17,17,0.16)',
         transition: 'border-color .15s ease',
       }}
     >
@@ -60,13 +65,14 @@ export default function PromptBox({
         }}
         placeholder={placeholder}
         rows={compact ? 1 : 2}
+        className={glass ? 'prompt-glass-input' : undefined}
         style={{
           width: '100%',
           resize: 'none',
           border: 'none',
           outline: 'none',
           background: 'transparent',
-          color: 'var(--fg)',
+          color: glass ? '#F7F6F2' : 'var(--fg)',
           fontSize: compact ? 14.5 : 16,
           lineHeight: 1.5,
           fontFamily: 'inherit',
@@ -87,8 +93,8 @@ export default function PromptBox({
             gap: 7,
             padding: '5px 10px',
             borderRadius: 8,
-            border: '1px solid var(--border)',
-            color: 'var(--fg-muted)',
+            border: glass ? '1px solid rgba(247,246,242,0.2)' : '1px solid var(--border)',
+            color: glass ? 'rgba(247,246,242,0.75)' : 'var(--fg-muted)',
             fontSize: 12.5,
           }}
         >
@@ -104,8 +110,8 @@ export default function PromptBox({
             width: 34,
             height: 34,
             borderRadius: 9,
-            background: value.trim() ? 'var(--accent)' : 'var(--surface-2)',
-            color: value.trim() ? 'var(--accent-ink)' : 'var(--fg-dim)',
+            background: value.trim() ? 'var(--accent)' : glass ? 'rgba(247,246,242,0.14)' : 'var(--surface-2)',
+            color: value.trim() ? 'var(--accent-ink)' : glass ? 'rgba(247,246,242,0.55)' : 'var(--fg-dim)',
             transition: 'background .15s ease',
           }}
         >
