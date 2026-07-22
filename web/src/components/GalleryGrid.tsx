@@ -18,16 +18,16 @@ function DeckCard({ deck }: { deck: DeckSummary }) {
         display: 'block',
         borderRadius: 'var(--radius)',
         overflow: 'hidden',
-        border: '1px solid var(--border)',
-        background: 'var(--surface)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        background: '#212120',
         transition: 'border-color .15s ease, transform .12s ease',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-2)';
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)';
         e.currentTarget.style.transform = 'translateY(-2px)';
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border)';
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
@@ -59,6 +59,7 @@ function DeckCard({ deck }: { deck: DeckSummary }) {
           style={{
             fontSize: 13.5,
             fontWeight: 500,
+            color: '#F7F6F2',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -69,7 +70,7 @@ function DeckCard({ deck }: { deck: DeckSummary }) {
         <div
           style={{
             fontSize: 12.5,
-            color: 'var(--fg-dim)',
+            color: 'rgba(247,246,242,0.55)',
             marginTop: 3,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
