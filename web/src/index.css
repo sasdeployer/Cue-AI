@@ -83,6 +83,35 @@ button {
 }
 .chip:hover { background: var(--muted); color: var(--fg); border-color: var(--fg-dim); }
 
+/* glass modifiers — layer onto .btn-ghost/.btn-primary/.chip for use over a photo
+   background (landing hero only). Base classes are shared with Builder's chrome
+   and stay untouched; these are additive, never applied there. */
+.btn-ghost-glass {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #F7F6F2;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+.btn-ghost-glass:hover { background: rgba(255, 255, 255, 0.22); border-color: rgba(255, 255, 255, 0.4); }
+
+.btn-primary-glass {
+  background: rgba(255, 106, 0, 0.55);
+  border: 1px solid rgba(255, 178, 71, 0.45);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+.btn-primary-glass:hover { background: rgba(255, 106, 0, 0.7); }
+
+.chip-glass {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(247, 246, 242, 0.85);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+}
+.chip-glass:hover { background: rgba(255, 255, 255, 0.18); color: #F7F6F2; border-color: rgba(255, 255, 255, 0.35); }
+
 .spinner {
   width: 15px; height: 15px;
   border: 2px solid color-mix(in srgb, var(--fg) 25%, transparent);

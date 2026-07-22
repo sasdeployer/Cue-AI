@@ -65,8 +65,8 @@ export default function Landing() {
           >
             <Logo light />
             <div style={{ display: 'flex', gap: 10 }}>
-              <button className="btn btn-ghost">Log in</button>
-              <button className="btn btn-primary">Sign up</button>
+              <button className="btn btn-ghost btn-ghost-glass">Log in</button>
+              <button className="btn btn-primary btn-primary-glass">Sign up</button>
             </div>
           </header>
 
@@ -126,7 +126,7 @@ export default function Landing() {
               }}
             >
               {TEMPLATES.map((t) => (
-                <button key={t.label} className="chip" onClick={() => start(t.prompt)}>
+                <button key={t.label} className="chip chip-glass" onClick={() => start(t.prompt)}>
                   {t.label}
                 </button>
               ))}
