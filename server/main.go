@@ -52,6 +52,7 @@ func main() {
 	r.POST("/api/decks", api.generate)
 	r.GET("/api/decks", api.list)
 	r.GET("/api/decks/:id", api.get)
+	r.POST("/api/decks/:id/edit", api.editDeck)
 
 	log.Printf("Cue AI server on :%s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {

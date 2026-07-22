@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useSearch, useNavigate, Link } from '@tanstack/react-router';
+import { useSearch, Link } from '@tanstack/react-router';
 import Logo from '../components/Logo';
 import PromptBox from '../components/PromptBox';
 import DeckPreview from '../components/DeckPreview';
-import { generateDeck, getDeck } from '../lib/api';
+import { generateDeck, editDeck, getDeck } from '../lib/api';
+import type { GenerateHandlers } from '../lib/api';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -12,6 +13,7 @@ interface Msg {
 }
 
 interface DeckState {
+  id: string;
   title: string;
   appTsx: string;
   tokensCss: string;
@@ -29,7 +31,6 @@ function chatText(raw: string): string {
 
 export default function Builder() {
   const { prompt, deckId } = useSearch({ from: '/build' });
-  const navigate = useNavigate();
 
   const [messages, setMessages] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
@@ -40,49 +41,60 @@ export default function Builder() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const started = useRef(false); // guard StrictMode double-run
 
-  const run = useCallback(async (p: string) => {
-    setBusy(true);
-    setError(null);
-    setMessages((m) => [
-      ...m,
-      { role: 'user', text: p },
-      { role: 'assistant', text: '', streaming: true },
-    ]);
+  // Drive a generate/edit SSE call, wiring streaming prose + the final deck into
+  // chat + preview. `p` is the prompt shown as the user message; `stream` performs
+  // the actual API call with the shared handlers.
+  const runStream = useCallback(
+    async (p: string, placeholder: string, stream: (h: GenerateHandlers) => Promise<void>) => {
+      setBusy(true);
+      setError(null);
+      setMessages((m) => [
+        ...m,
+        { role: 'user', text: p },
+        { role: 'assistant', text: '', streaming: true },
+      ]);
 
-    let raw = '';
-    await generateDeck(p, {
-      onDelta: (d) => {
-        raw += d;
-        const shown = chatText(raw) || 'Designing your deck…';
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = { role: 'assistant', text: shown, streaming: true };
-          return copy;
-        });
-      },
-      onDone: (res) => {
-        setDeck({ title: res.title, appTsx: res.appTsx, tokensCss: res.tokensCss });
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = {
-            role: 'assistant',
-            text: res.message || 'Here’s your deck.',
-          };
-          return copy;
-        });
-        setBusy(false);
-      },
-      onError: (msg) => {
-        setError(msg);
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = { role: 'assistant', text: `⚠️ ${msg}` };
-          return copy;
-        });
-        setBusy(false);
-      },
-    });
-  }, []);
+      let raw = '';
+      await stream({
+        onDelta: (d) => {
+          raw += d;
+          const shown = chatText(raw) || placeholder;
+          setMessages((m) => {
+            const copy = [...m];
+            copy[copy.length - 1] = { role: 'assistant', text: shown, streaming: true };
+            return copy;
+          });
+        },
+        onDone: (res) => {
+          setDeck({ id: res.id, title: res.title, appTsx: res.appTsx, tokensCss: res.tokensCss });
+          setMessages((m) => {
+            const copy = [...m];
+            copy[copy.length - 1] = {
+              role: 'assistant',
+              text: res.message || 'Here’s your deck.',
+            };
+            return copy;
+          });
+          setBusy(false);
+        },
+        onError: (msg) => {
+          setError(msg);
+          setMessages((m) => {
+            const copy = [...m];
+            copy[copy.length - 1] = { role: 'assistant', text: `⚠️ ${msg}` };
+            return copy;
+          });
+          setBusy(false);
+        },
+      });
+    },
+    [],
+  );
+
+  const run = useCallback(
+    (p: string) => runStream(p, 'Designing your deck…', (h) => generateDeck(p, h)),
+    [runStream],
+  );
 
   // initial: load an existing deck, or auto-run the landing prompt (once)
   useEffect(() => {
@@ -92,7 +104,7 @@ export default function Builder() {
     if (deckId) {
       getDeck(deckId)
         .then((d) => {
-          setDeck({ title: d.title, appTsx: d.appTsx, tokensCss: d.tokensCss });
+          setDeck({ id: d.id, title: d.title, appTsx: d.appTsx, tokensCss: d.tokensCss });
           setMessages([
             { role: 'user', text: d.prompt },
             { role: 'assistant', text: `Loaded “${d.title}”. Ask for changes or start a new deck.` },
@@ -109,9 +121,14 @@ export default function Builder() {
   }, [messages]);
 
   const onSubmit = (p: string) => {
-    // slice 1: each prompt generates a fresh deck
-    navigate({ to: '/build', search: {} });
-    run(p);
+    // follow-up on a loaded deck → edit in place (hot-swaps into the live preview,
+    // preserving the current slide); no deck yet → fresh generation
+    if (deck) {
+      const current = { appTsx: deck.appTsx, tokensCss: deck.tokensCss };
+      runStream(p, 'Updating your deck…', (h) => editDeck(deck.id, p, current, h));
+    } else {
+      run(p);
+    }
   };
 
   return (

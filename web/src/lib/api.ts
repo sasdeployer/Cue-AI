@@ -47,14 +47,14 @@ export interface GenerateHandlers {
 }
 
 /**
- * Stream a deck generation. Reads the SSE response body and dispatches
- * delta / done / error events.
+ * POST a JSON body and stream the SSE response, dispatching delta / done / error
+ * events to the handlers. Shared by generateDeck and editDeck.
  */
-export async function generateDeck(prompt: string, h: GenerateHandlers): Promise<void> {
-  const resp = await fetch(`${API_BASE}/api/decks`, {
+async function streamSSE(url: string, body: unknown, h: GenerateHandlers): Promise<void> {
+  const resp = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify(body),
     signal: h.signal,
   });
 
@@ -100,4 +100,29 @@ export async function generateDeck(prompt: string, h: GenerateHandlers): Promise
     }
   }
   if (buffer.trim()) dispatch(buffer);
+}
+
+/**
+ * Stream a deck generation. Reads the SSE response body and dispatches
+ * delta / done / error events.
+ */
+export async function generateDeck(prompt: string, h: GenerateHandlers): Promise<void> {
+  return streamSSE(`${API_BASE}/api/decks`, { prompt }, h);
+}
+
+/**
+ * Stream an edit of an existing deck. Sends the current deck source so the model
+ * can revise it; the SSE shape matches generateDeck.
+ */
+export async function editDeck(
+  id: string,
+  instruction: string,
+  current: { appTsx: string; tokensCss: string },
+  h: GenerateHandlers,
+): Promise<void> {
+  return streamSSE(
+    `${API_BASE}/api/decks/${id}/edit`,
+    { instruction, appTsx: current.appTsx, tokensCss: current.tokensCss },
+    h,
+  );
 }

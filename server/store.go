@@ -54,6 +54,13 @@ func (s *Store) CreateDeck(ctx context.Context, d *Deck) error {
 	).Scan(&d.ID, &d.CreatedAt)
 }
 
+func (s *Store) UpdateDeck(ctx context.Context, d *Deck) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE decks SET title=$2, app_tsx=$3, tokens_css=$4 WHERE id=$1`,
+		d.ID, d.Title, d.AppTSX, d.TokensCSS)
+	return err
+}
+
 func (s *Store) GetDeck(ctx context.Context, id uuid.UUID) (*Deck, error) {
 	d := &Deck{}
 	err := s.pool.QueryRow(ctx,

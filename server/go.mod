@@ -3,6 +3,7 @@ module cueai/server
 go 1.26.5
 
 require (
+	github.com/evanw/esbuild v0.28.1
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0

@@ -87,6 +87,34 @@ paths, and export default a function returning a single <Deck> with slides as ch
 Output ONLY these parts — no extra prose after the App.tsx block.`, comps, componentsAPI, skillMD, tokensDefaultCSS)
 }
 
+// editPrompt builds the user turn for an edit: it embeds the current deck and the
+// requested change, and asks for the COMPLETE updated deck in the same strict
+// output format. systemPrompt() is reused as the system prompt by llm.Generate.
+func editPrompt(instruction, appTsx, tokensCss string) string {
+	return fmt.Sprintf(`You are editing an existing deck. Apply the requested change and return the
+COMPLETE updated deck — not a diff, not only the changed slides.
+
+CURRENT tokens.css:
+`+"```css title=tokens.css"+`
+%s
+`+"```"+`
+
+CURRENT App.tsx:
+`+"```tsx title=App.tsx"+`
+%s
+`+"```"+`
+
+CHANGE REQUESTED:
+%s
+
+Return the COMPLETE updated deck in the EXACT same strict output format: one or two
+plain sentences describing the change, then a TITLE: line, then the full tokens.css
+in a `+"```css title=tokens.css"+` block, then the full App.tsx in a `+"```tsx title=App.tsx"+`
+block. Keep the same imports discipline (default imports) and only change what the
+request calls for. Output ONLY these parts — no extra prose after the App.tsx block.`,
+		strings.TrimSpace(tokensCss), strings.TrimSpace(appTsx), strings.TrimSpace(instruction))
+}
+
 var (
 	reTitle  = regexp.MustCompile(`(?m)^\s*TITLE:\s*(.+?)\s*$`)
 	reFenceH = regexp.MustCompile("(?s)```([a-zA-Z]*)([^\n]*)\n(.*?)```")

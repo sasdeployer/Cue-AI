@@ -21,7 +21,12 @@ for f in sorted(glob.glob('src/deck/Slide.tsx')+glob.glob('src/deck/Build.tsx')
     parts.append(f"// ===== {os.path.basename(f)} =====\n"+open(f).read().rstrip())
 open('server/reference/components.full.txt','w').write("\n\n".join(parts))
 PY
-rsync -a --delete src/ web/src/deck-template/src/   # Sandpack preview = current engine
+rsync -a --delete src/ web/src/deck-template/src/   # pre-baked engine for the web runtime
+node scripts/gen-registry.mjs                        # regenerate the module registry
+# Mirror the engine where the server compile-check (esbuild) resolves deck imports.
+rsync -a --delete src/deck/       server/reference/engine/deck/
+rsync -a --delete src/components/ server/reference/engine/components/
+rsync -a --delete src/styles/     server/reference/engine/styles/
 echo "  reference in sync with .bolt skill + src/."
 
 echo "▸ starting Postgres + pgvector (docker)…"
