@@ -335,7 +335,20 @@ function EmptyPreview({ busy, error }: { busy: boolean; error: string | null }) 
       }}
     >
       <div>
-        <div style={{ fontSize: 44, marginBottom: 14, opacity: 0.5 }}>⚡</div>
+        <div
+          style={{
+            display: 'inline-grid',
+            placeItems: 'center',
+            width: 52,
+            height: 52,
+            borderRadius: 14,
+            background: 'var(--accent)',
+            opacity: 0.5,
+            marginBottom: 14,
+          }}
+        >
+          <Aperture size={28} color="#fff" strokeWidth={2} />
+        </div>
         {error ? (
           <div style={{ color: 'var(--error)', fontSize: 14, maxWidth: 360 }}>{error}</div>
         ) : busy ? (
