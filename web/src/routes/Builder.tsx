@@ -5,6 +5,7 @@ import Logo from '../components/Logo';
 import PromptBox from '../components/PromptBox';
 import DeckPreview from '../components/DeckPreview';
 import StepGroup from '../components/StepGroup';
+import ShareModal from '../components/ShareModal';
 import { generateDeck, editDeck, getDeck } from '../lib/api';
 import type { GenerateHandlers, Step } from '../lib/api';
 
@@ -40,6 +41,7 @@ export default function Builder() {
   const [deck, setDeck] = useState<DeckState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const started = useRef(false); // guard StrictMode double-run
@@ -170,8 +172,12 @@ export default function Builder() {
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button className="btn btn-ghost" disabled={!deck}>Share</button>
-          <button className="btn btn-primary" disabled={!deck}>Publish</button>
+          <button className="btn btn-ghost" disabled={!deck} onClick={() => setSharing(true)}>
+            Share
+          </button>
+          <button className="btn btn-primary" disabled={!deck} onClick={() => setSharing(true)}>
+            Publish
+          </button>
           <div style={{ width: 1, height: 22, background: 'var(--border)', margin: '0 2px' }} />
           <Link to="/dashboard" className="btn btn-ghost">
             Settings
@@ -254,6 +260,14 @@ export default function Builder() {
           </button>
           <DeckPreview appTsx={deck.appTsx} tokensCss={deck.tokensCss} title={deck.title} />
         </div>
+      )}
+
+      {sharing && deck && (
+        <ShareModal
+          url={`${window.location.origin}/build?deckId=${deck.id}`}
+          title={deck.title}
+          onClose={() => setSharing(false)}
+        />
       )}
     </div>
   );
