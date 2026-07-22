@@ -3,13 +3,15 @@ import { useSearch, Link } from '@tanstack/react-router';
 import Logo from '../components/Logo';
 import PromptBox from '../components/PromptBox';
 import DeckPreview from '../components/DeckPreview';
+import StepGroup from '../components/StepGroup';
 import { generateDeck, editDeck, getDeck } from '../lib/api';
-import type { GenerateHandlers } from '../lib/api';
+import type { GenerateHandlers, Step } from '../lib/api';
 
 interface Msg {
   role: 'user' | 'assistant';
   text: string;
   streaming?: boolean;
+  steps?: Step[];
 }
 
 interface DeckState {
@@ -51,8 +53,21 @@ export default function Builder() {
       setMessages((m) => [
         ...m,
         { role: 'user', text: p },
-        { role: 'assistant', text: '', streaming: true },
+        { role: 'assistant', text: '', streaming: true, steps: [] },
       ]);
+
+      // merge a step into the streaming assistant message's step list by id
+      const mergeStep = (step: Step) => {
+        setMessages((m) => {
+          const copy = [...m];
+          const last = copy[copy.length - 1];
+          const steps = last.steps ?? [];
+          const i = steps.findIndex((s) => s.id === step.id);
+          const nextSteps = i === -1 ? [...steps, step] : steps.map((s, j) => (j === i ? step : s));
+          copy[copy.length - 1] = { ...last, steps: nextSteps };
+          return copy;
+        });
+      };
 
       let raw = '';
       await stream({
@@ -61,17 +76,19 @@ export default function Builder() {
           const shown = chatText(raw) || placeholder;
           setMessages((m) => {
             const copy = [...m];
-            copy[copy.length - 1] = { role: 'assistant', text: shown, streaming: true };
+            copy[copy.length - 1] = { ...copy[copy.length - 1], text: shown, streaming: true };
             return copy;
           });
         },
+        onStep: mergeStep,
         onDone: (res) => {
           setDeck({ id: res.id, title: res.title, appTsx: res.appTsx, tokensCss: res.tokensCss });
           setMessages((m) => {
             const copy = [...m];
             copy[copy.length - 1] = {
-              role: 'assistant',
+              ...copy[copy.length - 1],
               text: res.message || 'Here’s your deck.',
+              streaming: false,
             };
             return copy;
           });
@@ -81,7 +98,7 @@ export default function Builder() {
           setError(msg);
           setMessages((m) => {
             const copy = [...m];
-            copy[copy.length - 1] = { role: 'assistant', text: `⚠️ ${msg}` };
+            copy[copy.length - 1] = { ...copy[copy.length - 1], text: `⚠️ ${msg}`, streaming: false };
             return copy;
           });
           setBusy(false);
@@ -244,6 +261,11 @@ function ChatBubble({ msg }: { msg: Msg }) {
       {!isUser && (
         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-dim)', display: 'flex', alignItems: 'center', gap: 6 }}>
           <span>⚡</span> Cue
+        </div>
+      )}
+      {!isUser && msg.steps && msg.steps.length > 0 && (
+        <div style={{ width: '100%', maxWidth: '92%' }}>
+          <StepGroup steps={msg.steps} />
         </div>
       )}
       <div

@@ -26,6 +26,17 @@ export interface GenerateResult {
   tokensCss: string;
 }
 
+// Mirrors server/agent.go's Step struct. kind: read | search | write | check |
+// fix | think. status: start (in progress) | ok | error. The same id is
+// re-sent as status changes; callers merge by id.
+export interface Step {
+  id: string;
+  kind: string;
+  label: string;
+  target?: string;
+  status: 'start' | 'ok' | 'error';
+}
+
 export async function listDecks(): Promise<DeckSummary[]> {
   const r = await fetch(`${API_BASE}/api/decks`);
   if (!r.ok) throw new Error('failed to load gallery');
@@ -41,6 +52,7 @@ export async function getDeck(id: string): Promise<Deck> {
 
 export interface GenerateHandlers {
   onDelta?: (text: string) => void;
+  onStep?: (step: Step) => void;
   onDone?: (result: GenerateResult) => void;
   onError?: (message: string) => void;
   signal?: AbortSignal;
@@ -83,6 +95,7 @@ async function streamSSE(url: string, body: unknown, h: GenerateHandlers): Promi
     let payload: any;
     try { payload = JSON.parse(data); } catch { return; }
     if (event === 'delta') h.onDelta?.(payload.text ?? '');
+    else if (event === 'step') h.onStep?.(payload as Step);
     else if (event === 'done') h.onDone?.(payload as GenerateResult);
     else if (event === 'error') h.onError?.(payload.error ?? 'error');
   };

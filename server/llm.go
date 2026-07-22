@@ -206,8 +206,12 @@ func (c *OpenAIClient) streamTurn(ctx context.Context, messages, tools []map[str
 		reqBody["tools"] = tools
 		reqBody["tool_choice"] = "auto"
 	}
-	if strings.HasPrefix(c.model, "gpt-5") && c.reasoning != "" {
-		reqBody["reasoning_effort"] = c.reasoning
+	if strings.HasPrefix(c.model, "gpt-5") {
+		if len(tools) > 0 {
+			reqBody["reasoning_effort"] = "none" // gpt-5 requires this to use function tools on chat/completions
+		} else if c.reasoning != "" {
+			reqBody["reasoning_effort"] = c.reasoning
+		}
 	}
 	b, _ := json.Marshal(reqBody)
 
