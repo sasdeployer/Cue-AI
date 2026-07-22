@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearch, Link } from '@tanstack/react-router';
+import { Aperture } from 'lucide-react';
 import Logo from '../components/Logo';
 import PromptBox from '../components/PromptBox';
 import DeckPreview from '../components/DeckPreview';
@@ -260,7 +261,21 @@ function ChatBubble({ msg }: { msg: Msg }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: isUser ? 'flex-end' : 'flex-start' }}>
       {!isUser && (
         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-dim)', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span>⚡</span> Cue
+          <span
+            aria-hidden
+            style={{
+              display: 'inline-grid',
+              placeItems: 'center',
+              width: 16,
+              height: 16,
+              borderRadius: 5,
+              background: 'var(--accent)',
+              flexShrink: 0,
+            }}
+          >
+            <Aperture size={11} color="#fff" strokeWidth={2.25} />
+          </span>
+          Cue
         </div>
       )}
       {!isUser && msg.steps && msg.steps.length > 0 && (
