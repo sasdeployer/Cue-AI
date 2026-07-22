@@ -38,13 +38,22 @@ func main() {
 		log.Printf("LLM: canned (no OPENAI_API_KEY / ANTHROPIC_API_KEY set — decks are sample decks)")
 	}
 
-	api := &API{store: store, llm: llm}
+	var emailSender EmailSender
+	if cfg.ResendAPIKey != "" {
+		emailSender = NewResendEmailSender(cfg.ResendAPIKey, cfg.ResendFromEmail)
+		log.Printf("email: resend (%s)", cfg.ResendFromEmail)
+	} else {
+		emailSender = ConsoleEmailSender{}
+		log.Printf("email: console (no RESEND_API_KEY set — magic links are logged, not emailed)")
+	}
+
+	api := &API{store: store, llm: llm, email: emailSender, webBaseURL: cfg.AllowOrigin}
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{cfg.AllowOrigin},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
 
@@ -53,6 +62,12 @@ func main() {
 	r.GET("/api/decks", api.list)
 	r.GET("/api/decks/:id", api.get)
 	r.POST("/api/decks/:id/edit", api.editDeck)
+
+	r.POST("/api/auth/magic-link", api.requestMagicLink)
+	r.GET("/api/auth/verify", api.verifyMagicLink)
+	r.POST("/api/auth/logout", api.logout)
+	r.GET("/api/me", api.me)
+	r.GET("/api/me/decks", api.myDecks)
 
 	log.Printf("Cue AI server on :%s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {

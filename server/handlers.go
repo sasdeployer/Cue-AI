@@ -13,8 +13,147 @@ import (
 )
 
 type API struct {
-	store *Store
-	llm   LLMClient
+	store      *Store
+	llm        LLMClient
+	email      EmailSender
+	webBaseURL string
+}
+
+type magicLinkReq struct {
+	Email string `json:"email"`
+}
+
+// currentUser resolves the bearer session token (if any) to a user. Returns
+// nil, never an error, when there's no/an invalid token — every endpoint that
+// calls this treats "not logged in" as a normal, expected state.
+func (a *API) currentUser(c *gin.Context) *User {
+	auth := c.GetHeader("Authorization")
+	const prefix = "Bearer "
+	if len(auth) <= len(prefix) || auth[:len(prefix)] != prefix {
+		return nil
+	}
+	raw := auth[len(prefix):]
+	u, err := a.store.GetSessionUser(c.Request.Context(), hashToken(raw))
+	if err != nil {
+		log.Printf("session lookup error: %v", err)
+		return nil
+	}
+	return u
+}
+
+// requireUser is currentUser but writes 401 and returns nil when logged out —
+// for endpoints that only make sense with an identity (the dashboard).
+func (a *API) requireUser(c *gin.Context) *User {
+	u := a.currentUser(c)
+	if u == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "log in required"})
+	}
+	return u
+}
+
+// POST /api/auth/magic-link — {email} -> emails (or logs, if no email
+// provider configured) a one-time login link. Always returns ok:true,
+// regardless of whether the email is new or known, so the response never
+// reveals whether an account exists.
+func (a *API) requestMagicLink(c *gin.Context) {
+	var req magicLinkReq
+	if err := c.ShouldBindJSON(&req); err != nil || req.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
+		return
+	}
+
+	ctx := c.Request.Context()
+	raw, hash, err := newToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to start login"})
+		return
+	}
+	if err := a.store.CreateMagicLink(ctx, hash, req.Email, magicLinkTTL); err != nil {
+		log.Printf("magic link store error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to start login"})
+		return
+	}
+
+	link := a.webBaseURL + "/auth/verify?token=" + raw
+	if err := a.email.Send(ctx, req.Email, "Log in to Cue", magicLinkEmailBody(link)); err != nil {
+		log.Printf("magic link email error: %v", err)
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+// GET /api/auth/verify?token=... — consumes the one-time token, gets/creates
+// the user, and issues a session token for the client to store + send back
+// as `Authorization: Bearer`.
+func (a *API) verifyMagicLink(c *gin.Context) {
+	raw := c.Query("token")
+	if raw == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing token"})
+		return
+	}
+
+	ctx := c.Request.Context()
+	email, err := a.store.ConsumeMagicLink(ctx, hashToken(raw))
+	if errors.Is(err, ErrMagicLinkInvalid) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "that login link is invalid or has expired"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
+		return
+	}
+
+	user, err := a.store.GetOrCreateUser(ctx, email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
+		return
+	}
+
+	sessionRaw, sessionHash, err := newToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
+		return
+	}
+	if err := a.store.CreateSession(ctx, sessionHash, user.ID, sessionTTL); err != nil {
+		log.Printf("session store error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"sessionToken": sessionRaw, "email": user.Email})
+}
+
+// GET /api/me — the logged-in user, or 401 if not logged in.
+func (a *API) me(c *gin.Context) {
+	u := a.requireUser(c)
+	if u == nil {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"email": u.Email})
+}
+
+// POST /api/auth/logout — best-effort session deletion; the client clears
+// its stored token regardless of whether this succeeds.
+func (a *API) logout(c *gin.Context) {
+	auth := c.GetHeader("Authorization")
+	const prefix = "Bearer "
+	if len(auth) > len(prefix) && auth[:len(prefix)] == prefix {
+		_ = a.store.DeleteSession(c.Request.Context(), hashToken(auth[len(prefix):]))
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+// GET /api/me/decks — the logged-in user's own decks, for the dashboard.
+func (a *API) myDecks(c *gin.Context) {
+	u := a.requireUser(c)
+	if u == nil {
+		return
+	}
+	decks, err := a.store.ListDecksByUser(c.Request.Context(), u.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"decks": decks})
 }
 
 type generateReq struct {
@@ -163,6 +302,12 @@ func (a *API) generate(c *gin.Context) {
 	deck := &Deck{
 		Owner: "anon", Title: title, Prompt: req.Prompt,
 		AppTSX: appTSX, TokensCSS: tokensCSS, IsPublic: true,
+	}
+	// attribution is optional — an anonymous visitor can still generate a
+	// deck, it just won't show up on anyone's dashboard
+	if u := a.currentUser(c); u != nil {
+		deck.Owner = u.Email
+		deck.UserID = &u.ID
 	}
 	if err := a.store.CreateDeck(ctx, deck); err != nil {
 		log.Printf("store error: %v", err)

@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import Logo from '../components/Logo';
 import PromptBox from '../components/PromptBox';
 import GalleryGrid from '../components/GalleryGrid';
+import AuthNav from '../components/AuthNav';
 import { listDecks, type DeckSummary } from '../lib/api';
 
 const TEMPLATES: { label: string; prompt: string }[] = [
@@ -64,10 +65,7 @@ export default function Landing() {
             }}
           >
             <Logo light />
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button className="btn btn-ghost btn-ghost-glass">Log in</button>
-              <button className="btn btn-primary btn-primary-glass">Sign up</button>
-            </div>
+            <AuthNav glass />
           </header>
 
           {/* hero copy + prompt — anchored to the lower third, over the darker

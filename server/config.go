@@ -14,6 +14,8 @@ type Config struct {
 	OpenAIModel     string
 	OpenAIReasoning string
 	AllowOrigin     string
+	ResendAPIKey    string
+	ResendFromEmail string
 }
 
 func loadConfig() Config {
@@ -26,6 +28,8 @@ func loadConfig() Config {
 		OpenAIModel:     env("OPENAI_MODEL", "gpt-5.2"),
 		OpenAIReasoning: env("OPENAI_REASONING_EFFORT", "medium"),
 		AllowOrigin:     env("ALLOW_ORIGIN", "http://localhost:5273"),
+		ResendAPIKey:    os.Getenv("RESEND_API_KEY"),
+		ResendFromEmail: env("RESEND_FROM_EMAIL", "Cue <login@cue.dev>"),
 	}
 }
 

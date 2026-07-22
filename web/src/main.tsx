@@ -10,6 +10,8 @@ import {
 import './index.css';
 import Landing from './routes/Landing';
 import Builder from './routes/Builder';
+import AuthVerify from './routes/AuthVerify';
+import Dashboard from './routes/Dashboard';
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> });
 
@@ -34,7 +36,26 @@ const buildRoute = createRoute({
   component: Builder,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, buildRoute]);
+interface VerifySearch {
+  token?: string;
+}
+
+const verifyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth/verify',
+  validateSearch: (search: Record<string, unknown>): VerifySearch => ({
+    token: typeof search.token === 'string' ? search.token : undefined,
+  }),
+  component: AuthVerify,
+});
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/dashboard',
+  component: Dashboard,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, buildRoute, verifyRoute, dashboardRoute]);
 
 const router = createRouter({ routeTree, defaultPreload: 'intent' });
 

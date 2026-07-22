@@ -92,6 +92,42 @@ without `reasoning_effort` explicitly set to `"none"` on `/chat/completions`
 — omitting the field isn't enough, the API defaults to a non-none value.
 Already handled in `llm.go`; don't regress this if touching the OpenAI client.
 
+### Auth: magic link only, no passwords, no Clerk
+
+Shipped 2026-07-22. Deliberately **not** using a managed provider (Clerk was
+considered and explicitly rejected for this) — home-rolled magic link because
+the stakes are genuinely low: every deck is public regardless of login, auth
+here is purely identity for a personal "my decks" dashboard, not access
+control. Don't add a private/paid tier's worth of hardening (rate limiting,
+email verification loops, etc.) without a real reason — it'd be solving a
+problem this product doesn't have.
+
+- **Flow**: `POST /api/auth/magic-link {email}` → server generates a random
+  token, stores its SHA-256 hash + a 15-min expiry (`magic_links` table),
+  emails (or logs, see below) a link to `{ALLOW_ORIGIN}/auth/verify?token=...`.
+  The frontend route `/auth/verify` calls `GET /api/auth/verify?token=...`,
+  which atomically consumes the token and returns a session token (30-day
+  expiry, `sessions` table, also stored hashed). The frontend stores that in
+  `localStorage` and sends it back as `Authorization: Bearer <token>` — **not
+  a cookie** (`web/src/lib/auth.ts`). Cookies were considered and rejected:
+  the API (`:8080`) and web app (`:5273`) are different origins in dev, and
+  `SameSite=None` cookies require HTTPS, which local dev doesn't have.
+- **No email provider configured by default**: `server/auth.go`'s
+  `ConsoleEmailSender` just logs the magic link to server stdout. Set
+  `RESEND_API_KEY` (+ `RESEND_FROM_EMAIL`) to actually send email via Resend.
+  This is why login "works" in local dev with zero setup — check the server
+  log for the link instead of an inbox.
+- **Deck attribution is optional, not required**: generating a deck while
+  logged out still works exactly as before (`owner: "anon"`); logging in
+  just means new decks additionally get `user_id` set, so they show up on
+  `/dashboard` (`GET /api/me/decks`). Don't gate the core prompt→deck flow
+  behind login — that was an explicit requirement, not an oversight.
+- Schema: `users`, `magic_links`, `sessions` tables + `decks.user_id` — see
+  `db/init.sql`. Applied to the already-running dev container via
+  `docker exec cueai-db psql -U cueai -d cueai < db/init.sql` (init.sql only
+  auto-applies on first volume creation; a fresh clone gets it for free, an
+  existing local DB needs that one-time manual apply).
+
 ## Dev workflow
 
 ```bash

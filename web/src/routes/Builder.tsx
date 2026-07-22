@@ -5,6 +5,7 @@ import Logo from '../components/Logo';
 import PromptBox from '../components/PromptBox';
 import DeckPreview from '../components/DeckPreview';
 import StepGroup from '../components/StepGroup';
+import AuthNav from '../components/AuthNav';
 import { generateDeck, editDeck, getDeck } from '../lib/api';
 import type { GenerateHandlers, Step } from '../lib/api';
 
@@ -169,9 +170,11 @@ export default function Builder() {
             {deck?.title ?? 'New deck'}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button className="btn btn-ghost" disabled={!deck}>Share</button>
           <button className="btn btn-primary" disabled={!deck}>Publish</button>
+          <div style={{ width: 1, height: 22, background: 'var(--border)', margin: '0 2px' }} />
+          <AuthNav />
         </div>
       </header>
 

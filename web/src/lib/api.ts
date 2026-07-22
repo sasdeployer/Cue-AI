@@ -1,3 +1,5 @@
+import { authHeaders } from './auth';
+
 export const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8080';
 
 export interface DeckSummary {
@@ -67,7 +69,7 @@ export interface GenerateHandlers {
 async function streamSSE(url: string, body: unknown, h: GenerateHandlers): Promise<void> {
   const resp = await fetch(url, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...authHeaders() },
     body: JSON.stringify(body),
     signal: h.signal,
   });
