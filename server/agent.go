@@ -113,7 +113,7 @@ func execToolCall(ctx context.Context, tc toolCall, opts GenOptions) string {
 		if u, err := url.Parse(args.URL); err == nil && u.Host != "" {
 			host = u.Host
 		}
-		opts.step(Step{ID: tc.ID, Kind: "search", Label: "Fetching " + host, Target: args.URL, Status: "start"})
+		opts.step(Step{ID: tc.ID, Kind: "search", Label: "Researching " + host, Target: args.URL, Status: "start"})
 		text, err := fetchURL(ctx, args.URL)
 		if err != nil {
 			opts.step(Step{ID: tc.ID, Kind: "search", Label: "Couldn't reach " + host, Target: args.URL, Status: "error"})

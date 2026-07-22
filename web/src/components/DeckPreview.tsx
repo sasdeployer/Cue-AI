@@ -135,14 +135,14 @@ function ErrorOverlay({ error, title }: { error: RenderError; title?: string }) 
         style={{
           maxWidth: 520,
           width: '100%',
-          background: 'var(--bg-1)',
-          border: '1px solid #f8717133',
+          background: 'var(--error-bg)',
+          border: '1px solid color-mix(in srgb, var(--error) 35%, transparent)',
           borderRadius: 12,
           padding: 20,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <span style={{ color: '#f87171', fontSize: 15, fontWeight: 600 }}>
+          <span style={{ color: 'var(--error)', fontSize: 15, fontWeight: 600 }}>
             Deck failed to render
           </span>
           <span style={{ color: 'var(--fg-dim)', fontSize: 12 }}>({error.phase})</span>
@@ -156,7 +156,7 @@ function ErrorOverlay({ error, title }: { error: RenderError; title?: string }) 
             fontFamily: 'var(--font-mono, ui-monospace, monospace)',
             fontSize: 12.5,
             lineHeight: 1.5,
-            color: '#fca5a5',
+            color: 'color-mix(in srgb, var(--error) 80%, var(--fg-muted) 20%)',
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
             maxHeight: 260,

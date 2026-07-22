@@ -14,8 +14,8 @@ const ICON: Record<string, string> = {
 };
 
 // Renders the agent activity feed (server/agent.go Step events, merged by id)
-// as a compact vertical list — one row per step, icon swaps for a spinner
-// while it's in flight.
+// as a compact vertical list — one row per step, icon swaps for a pulsing
+// "cue light" dot while it's in flight.
 export default function StepGroup({ steps }: Props) {
   if (steps.length === 0) return null;
 
@@ -35,20 +35,22 @@ export default function StepGroup({ steps }: Props) {
       {steps.map((s) => (
         <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {s.status === 'start' ? (
-            <span className="spinner" style={{ width: 11, height: 11, borderWidth: 1.5, flexShrink: 0 }} />
+            <span style={{ width: 14, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              <span className="cue-pulse" />
+            </span>
           ) : (
             <span
               style={{
                 width: 14,
                 textAlign: 'center',
                 flexShrink: 0,
-                color: s.status === 'error' ? '#f87171' : 'var(--fg-dim)',
+                color: s.status === 'error' ? 'var(--error)' : 'var(--fg-dim)',
               }}
             >
               {s.status === 'error' ? '✕' : ICON[s.kind] ?? '·'}
             </span>
           )}
-          <span style={{ color: s.status === 'error' ? '#f87171' : 'var(--fg-muted)' }}>{s.label}</span>
+          <span style={{ color: s.status === 'error' ? 'var(--error)' : 'var(--fg-muted)' }}>{s.label}</span>
           {s.target && (
             <span
               style={{

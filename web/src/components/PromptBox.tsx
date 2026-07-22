@@ -44,7 +44,7 @@ export default function PromptBox({
         background: 'var(--surface)',
         borderRadius: compact ? 14 : 18,
         padding: compact ? 12 : 18,
-        boxShadow: '0 12px 40px -12px rgba(0,0,0,0.6)',
+        boxShadow: '0 12px 40px -12px rgba(17,17,17,0.16)',
         transition: 'border-color .15s ease',
       }}
     >
@@ -104,8 +104,8 @@ export default function PromptBox({
             width: 34,
             height: 34,
             borderRadius: 9,
-            background: value.trim() ? 'var(--fg)' : 'var(--surface-2)',
-            color: value.trim() ? '#000' : 'var(--fg-dim)',
+            background: value.trim() ? 'var(--accent)' : 'var(--surface-2)',
+            color: value.trim() ? 'var(--accent-ink)' : 'var(--fg-dim)',
             transition: 'background .15s ease',
           }}
         >

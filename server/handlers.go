@@ -86,7 +86,7 @@ func (a *API) generateChecked(ctx context.Context, c *gin.Context, prompt string
 	for i := 0; i < 3; i++ {
 		p := prompt
 		if i > 0 {
-			fx := sp.begin("fix", "Fixing compile errors", "")
+			fx := sp.begin("fix", "Retake", "")
 			sp.finish(fx, "ok")
 			p = prompt + "\n\nThe previous attempt did not compile:\n" + lastErr.Error() +
 				"\nReturn the COMPLETE corrected deck in the same format."
@@ -100,9 +100,9 @@ func (a *API) generateChecked(ctx context.Context, c *gin.Context, prompt string
 			opts.OnDelta = func(delta string) { sse(c, "delta", gin.H{"text": delta}) }
 		}
 
-		label := "Designing the deck"
+		label := "Setting the scene"
 		if i > 0 {
-			label = "Reworking the deck"
+			label = "Calling for a retake"
 		}
 		think := sp.begin("think", label, "")
 
@@ -121,13 +121,13 @@ func (a *API) generateChecked(ctx context.Context, c *gin.Context, prompt string
 		sp.finish(think, "ok")
 
 		if tokensCSS != "" {
-			w := sp.begin("write", "Writing tokens.css", "src/styles/tokens.css")
+			w := sp.begin("write", "Lighting the set", "src/styles/tokens.css")
 			sp.finish(w, "ok")
 		}
-		wa := sp.begin("write", "Writing App.tsx", "src/App.tsx")
+		wa := sp.begin("write", "Blocking the shot", "src/App.tsx")
 		sp.finish(wa, "ok")
 
-		chk := sp.begin("check", "Type-checking deck", "")
+		chk := sp.begin("check", "Rolling tape", "")
 		if cerr := CheckDeck(appTSX); cerr != nil {
 			sp.finish(chk, "error")
 			lastErr = cerr

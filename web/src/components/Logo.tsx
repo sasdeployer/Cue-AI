@@ -21,8 +21,8 @@ export default function Logo({ size = 20 }: { size?: number }) {
           width: size + 8,
           height: size + 8,
           borderRadius: 8,
-          background: 'var(--fg)',
-          color: '#000',
+          background: 'var(--accent)',
+          color: 'var(--accent-ink)',
           fontSize: size - 3,
         }}
       >

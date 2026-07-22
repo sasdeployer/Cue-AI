@@ -63,7 +63,7 @@ export default function Landing() {
             margin: '0 0 8px',
           }}
         >
-          What do you want to present?
+          Every great presentation starts with a cue.
         </h1>
         <p
           style={{
@@ -73,7 +73,7 @@ export default function Landing() {
             margin: '0 0 28px',
           }}
         >
-          One prompt in — Cue builds a deck where every slide is a live, responsive web page.
+          Describe your idea. Cue turns it into a polished, interactive presentation in minutes.
         </p>
 
         <PromptBox onSubmit={start} autoFocus placeholder="Describe your deck… e.g. “a pitch for a distributed inference engine”" />

@@ -87,7 +87,7 @@ export default function Builder() {
             const copy = [...m];
             copy[copy.length - 1] = {
               ...copy[copy.length - 1],
-              text: res.message || 'Here’s your deck.',
+              text: res.message || 'Ready for the stage.',
               streaming: false,
             };
             return copy;
@@ -218,7 +218,7 @@ export default function Builder() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fg-muted)' }}>
               <span style={{ width: 8, height: 8, borderRadius: 999, background: deck ? 'var(--accent)' : 'var(--border-2)' }} />
-              {busy ? 'Building…' : deck ? 'Preview' : 'Idle'}
+              {busy ? 'Taking the cue…' : deck ? 'Preview' : 'Idle'}
             </div>
             {deck && (
               <button className="btn btn-ghost" onClick={() => setExpanded(true)} style={{ padding: '6px 12px' }}>
@@ -304,10 +304,10 @@ function EmptyPreview({ busy, error }: { busy: boolean; error: string | null }) 
       <div>
         <div style={{ fontSize: 44, marginBottom: 14, opacity: 0.5 }}>⚡</div>
         {error ? (
-          <div style={{ color: '#f87171', fontSize: 14, maxWidth: 360 }}>{error}</div>
+          <div style={{ color: 'var(--error)', fontSize: 14, maxWidth: 360 }}>{error}</div>
         ) : busy ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
-            <span className="spinner" /> Building your deck…
+            <span className="spinner" /> Taking the cue…
           </div>
         ) : (
           <>
