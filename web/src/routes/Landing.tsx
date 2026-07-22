@@ -96,7 +96,7 @@ export default function Landing() {
                 margin: '0 0 8px',
               }}
             >
-              Every great presentation starts with a cue.
+              Present ideas that move people.
             </h1>
             <p
               style={{
