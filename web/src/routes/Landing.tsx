@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, Link } from '@tanstack/react-router';
 import Logo from '../components/Logo';
 import PromptBox from '../components/PromptBox';
 import GalleryGrid from '../components/GalleryGrid';
-import AuthNav from '../components/AuthNav';
 import { listDecks, type DeckSummary } from '../lib/api';
 
 const TEMPLATES: { label: string; prompt: string }[] = [
@@ -65,7 +64,9 @@ export default function Landing() {
             }}
           >
             <Logo light />
-            <AuthNav glass />
+            <Link to="/dashboard" className="btn btn-ghost btn-ghost-glass">
+              Settings
+            </Link>
           </header>
 
           {/* hero copy + prompt — anchored to the lower third, over the darker

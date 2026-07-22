@@ -92,41 +92,38 @@ without `reasoning_effort` explicitly set to `"none"` on `/chat/completions`
 — omitting the field isn't enough, the API defaults to a non-none value.
 Already handled in `llm.go`; don't regress this if touching the OpenAI client.
 
-### Auth: magic link only, no passwords, no Clerk
+### No accounts. BYOK (bring-your-own-key) instead
 
-Shipped 2026-07-22. Deliberately **not** using a managed provider (Clerk was
-considered and explicitly rejected for this) — home-rolled magic link because
-the stakes are genuinely low: every deck is public regardless of login, auth
-here is purely identity for a personal "my decks" dashboard, not access
-control. Don't add a private/paid tier's worth of hardening (rate limiting,
-email verification loops, etc.) without a real reason — it'd be solving a
-problem this product doesn't have.
+There was a magic-link email-auth system (shipped, then fully removed, same
+day — 2026-07-22) once Sal decided to open-source the project. **Do not
+rebuild it or anything like it** (no Clerk, no OAuth, no passwords, no
+"dashboard shows my decks" personal listing) unless explicitly asked again —
+this was a deliberate, considered reversal, not an oversight. Open source +
+no accounts means there's no user identity to gate anything behind, and
+every deck is public regardless.
 
-- **Flow**: `POST /api/auth/magic-link {email}` → server generates a random
-  token, stores its SHA-256 hash + a 15-min expiry (`magic_links` table),
-  emails (or logs, see below) a link to `{ALLOW_ORIGIN}/auth/verify?token=...`.
-  The frontend route `/auth/verify` calls `GET /api/auth/verify?token=...`,
-  which atomically consumes the token and returns a session token (30-day
-  expiry, `sessions` table, also stored hashed). The frontend stores that in
-  `localStorage` and sends it back as `Authorization: Bearer <token>` — **not
-  a cookie** (`web/src/lib/auth.ts`). Cookies were considered and rejected:
-  the API (`:8080`) and web app (`:5273`) are different origins in dev, and
-  `SameSite=None` cookies require HTTPS, which local dev doesn't have.
-- **No email provider configured by default**: `server/auth.go`'s
-  `ConsoleEmailSender` just logs the magic link to server stdout. Set
-  `RESEND_API_KEY` (+ `RESEND_FROM_EMAIL`) to actually send email via Resend.
-  This is why login "works" in local dev with zero setup — check the server
-  log for the link instead of an inbox.
-- **Deck attribution is optional, not required**: generating a deck while
-  logged out still works exactly as before (`owner: "anon"`); logging in
-  just means new decks additionally get `user_id` set, so they show up on
-  `/dashboard` (`GET /api/me/decks`). Don't gate the core prompt→deck flow
-  behind login — that was an explicit requirement, not an oversight.
-- Schema: `users`, `magic_links`, `sessions` tables + `decks.user_id` — see
-  `db/init.sql`. Applied to the already-running dev container via
-  `docker exec cueai-db psql -U cueai -d cueai < db/init.sql` (init.sql only
-  auto-applies on first volume creation; a fresh clone gets it for free, an
-  existing local DB needs that one-time manual apply).
+What exists instead: **BYOK**. The server runs with its own default
+OpenAI/Anthropic key (from `.env`, unchanged from the start), but a visitor
+can plug in their *own* key on the `/dashboard` Settings page instead:
+
+- **Storage**: `web/src/lib/keys.ts` — Web Crypto (AES-GCM) encrypts the key
+  before it touches `localStorage`. A random per-browser "device key" is
+  generated once and stored alongside (also in `localStorage`) to
+  encrypt/decrypt. Honest limitation, stated plainly in the code comment:
+  with no account/password, the decryption key lives in the same browser as
+  the ciphertext, so this defends against casual exposure (dev-tools glance,
+  screenshot, log scrape) — not a fully compromised machine. No purely
+  client-side scheme can do better than that without introducing an account.
+- **Wire format**: the frontend sends the decrypted key as
+  `X-User-OpenAI-Key` / `X-User-Anthropic-Key` request headers (only on
+  `generateDeck`/`editDeck` calls — see `api.ts`'s `byokHeaders()`). The
+  server (`handlers.go`'s `llmFor`) builds a **one-off** `LLMClient` for that
+  single request when a header is present, and never logs or persists the
+  key — falls back to the server's own configured client otherwise.
+- **CORS**: `main.go` explicitly allows the two `X-User-*-Key` headers.
+- Nothing here requires the database — no `users`/`sessions`/`magic_links`
+  tables exist, and `decks` has no `user_id` column. If you see either
+  referenced anywhere, it's stale.
 
 ## Dev workflow
 
@@ -146,8 +143,16 @@ Without any LLM key: canned mode, fully demoable. Real generation needs
 
 ## Verification habits used in this repo
 
-- `cd web && npx tsc --noEmit` and `cd server && go build ./...` after any
-  edit — both are fast and catch real breakage before it's "done."
+- **`cd web && npx tsc --noEmit` is a silent no-op in this repo — do NOT use
+  it.** The root `web/tsconfig.json` is a solution-style config (`"files":
+  []` + `references`), so bare `tsc --noEmit` type-checks *nothing* and
+  exits clean regardless of real errors. This went undetected for an entire
+  session's worth of "TSC OK" claims before being caught. Use
+  **`npx tsc -p tsconfig.app.json --noEmit`** (or `npx tsc -b --force` to
+  check both referenced projects) instead — verify it actually reports
+  errors on a deliberately broken import before trusting a clean run.
+- `cd server && go build ./...` after any edit — fast, and a real check
+  (unaffected by the tsc issue above).
 - Screenshot real behavior with Playwright (see prior sessions' scratch
   scripts) rather than trusting a description of what code *should* do —
   several real bugs this session (gpt-5 tool-call 400, a headline colliding

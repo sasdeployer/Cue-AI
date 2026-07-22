@@ -14,8 +14,9 @@ One prompt in — Cue builds a deck where every slide is a live, responsive web 
 Cue is a v0.dev / Lovable-style product for **decks**: describe what you want on the
 landing page, and Cue generates a [bolt-slides](https://github.com/stackblitz/bolt-slides)
 deck — chat on the left, a live preview of the deck on the right, full-screen when you
-want it, streamed step-by-step as it's built. Public decks show up in the community
-gallery with real live-rendered previews; paid, private decks are a later slice.
+want it, streamed step-by-step as it's built. Every deck is public and shows up in the
+community gallery with a real live-rendered preview — Cue is open source and has no
+accounts; see **BYOK** below for using your own API key instead of the shared default.
 
 ## Stack
 
@@ -67,6 +68,14 @@ ANTHROPIC_MODEL=claude-sonnet-5
 then restart the server. `server/llm.go` puts this behind an `LLMClient` interface, so
 the provider is swappable; `server/agent.go` runs an actual tool-using agent loop (not
 just a single completion call) and streams its real activity as a step feed in the UI.
+
+### BYOK (bring your own key)
+
+The key above is the server's *default* — anyone using the app can instead add their own
+OpenAI or Anthropic key from the **Settings** page (`/dashboard`). It's encrypted with
+Web Crypto before it ever touches `localStorage`, decrypted only in-browser, and sent
+per-request as an `X-User-OpenAI-Key` / `X-User-Anthropic-Key` header — the server never
+logs or stores it, just uses it to build a one-off client for that single request.
 
 ## Layout
 

@@ -1,4 +1,4 @@
-import { authHeaders } from './auth';
+import { byokHeaders } from './keys';
 
 export const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8080';
 
@@ -69,7 +69,7 @@ export interface GenerateHandlers {
 async function streamSSE(url: string, body: unknown, h: GenerateHandlers): Promise<void> {
   const resp = await fetch(url, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', ...authHeaders() },
+    headers: { 'content-type': 'application/json', ...(await byokHeaders()) },
     body: JSON.stringify(body),
     signal: h.signal,
   });
