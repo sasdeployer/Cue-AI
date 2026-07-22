@@ -20,11 +20,14 @@ type Deck struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-// DeckSummary is the lightweight shape returned in gallery listings.
+// DeckSummary is the shape returned in gallery listings. Includes appTsx/tokensCss
+// so cards can render a real live thumbnail instead of a placeholder.
 type DeckSummary struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
 	Prompt    string    `json:"prompt"`
+	AppTSX    string    `json:"appTsx"`
+	TokensCSS string    `json:"tokensCss"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -75,7 +78,7 @@ func (s *Store) GetDeck(ctx context.Context, id uuid.UUID) (*Deck, error) {
 
 func (s *Store) ListPublicDecks(ctx context.Context, limit int) ([]DeckSummary, error) {
 	rows, err := s.pool.Query(ctx,
-		`SELECT id, title, prompt, created_at
+		`SELECT id, title, prompt, app_tsx, tokens_css, created_at
 		 FROM decks WHERE is_public = true
 		 ORDER BY created_at DESC LIMIT $1`, limit)
 	if err != nil {
@@ -86,7 +89,7 @@ func (s *Store) ListPublicDecks(ctx context.Context, limit int) ([]DeckSummary, 
 	out := []DeckSummary{}
 	for rows.Next() {
 		var d DeckSummary
-		if err := rows.Scan(&d.ID, &d.Title, &d.Prompt, &d.CreatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.Title, &d.Prompt, &d.AppTSX, &d.TokensCSS, &d.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, d)

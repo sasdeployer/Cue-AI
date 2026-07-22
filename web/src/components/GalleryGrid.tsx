@@ -1,13 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import type { DeckSummary } from '../lib/api';
-
-// deterministic gradient from an id so cards feel distinct but stable
-function gradient(seed: string): string {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) % 360;
-  const h2 = (h + 40) % 360;
-  return `radial-gradient(120% 120% at 20% 10%, hsl(${h} 55% 22%), transparent 60%), radial-gradient(120% 120% at 90% 90%, hsl(${h2} 50% 16%), #0c0c0e 70%)`;
-}
+import DeckThumbnail from './DeckThumbnail';
 
 function DeckCard({ deck }: { deck: DeckSummary }) {
   return (
@@ -31,29 +24,7 @@ function DeckCard({ deck }: { deck: DeckSummary }) {
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
-      <div
-        style={{
-          aspectRatio: '16 / 10',
-          background: gradient(deck.id),
-          display: 'grid',
-          placeItems: 'center',
-          padding: 20,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 'clamp(15px, 2.4vw, 20px)',
-            fontWeight: 600,
-            letterSpacing: '-0.02em',
-            textAlign: 'center',
-            lineHeight: 1.25,
-            color: '#f4f4f5',
-            textShadow: '0 2px 20px rgba(0,0,0,0.5)',
-          }}
-        >
-          {deck.title}
-        </div>
-      </div>
+      <DeckThumbnail appTsx={deck.appTsx} tokensCss={deck.tokensCss} />
       <div style={{ padding: '12px 14px' }}>
         <div
           style={{

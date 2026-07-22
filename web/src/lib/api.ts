@@ -4,6 +4,8 @@ export interface DeckSummary {
   id: string;
   title: string;
   prompt: string;
+  appTsx: string;
+  tokensCss: string;
   createdAt: string;
 }
 
