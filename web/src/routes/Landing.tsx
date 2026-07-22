@@ -12,15 +12,12 @@ const TEMPLATES: { label: string; prompt: string }[] = [
   { label: 'Investor update', prompt: 'A monthly investor update deck: metrics, wins, asks.' },
 ];
 
-// generated "Ember Proscenium" backgrounds — see docs/superpowers/specs for the design note
-const HERO_IMAGES = ['/hero/ember-1.webp', '/hero/ember-2.webp', '/hero/ember-3.webp', '/hero/ember-4.webp'];
-const HERO_INTERVAL_MS = 8000;
+const HERO_IMAGE = '/hero/umbrella-bridge.webp';
 
 export default function Landing() {
   const navigate = useNavigate();
   const [decks, setDecks] = useState<DeckSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
     listDecks()
@@ -29,39 +26,30 @@ export default function Landing() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const id = setInterval(() => setHeroIndex((i) => (i + 1) % HERO_IMAGES.length), HERO_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, []);
-
   const start = (prompt: string) => navigate({ to: '/build', search: { prompt } });
 
   return (
     <div style={{ minHeight: '100%' }}>
-      {/* hero band — full-bleed crossfading background, image-only zone */}
-      <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: '#0B0906' }}>
-        {HERO_IMAGES.map((src, i) => (
-          <div
-            key={src}
-            aria-hidden={i !== heroIndex}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: `url(${src})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              opacity: i === heroIndex ? 1 : 0,
-              transition: 'opacity 1.6s ease',
-            }}
-          />
-        ))}
-        {/* scrim: guarantees text/panel legibility regardless of which frame is showing */}
+      {/* hero band — full-bleed background photo, image-only zone */}
+      <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: '#111' }}>
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.35) 100%)',
+            backgroundImage: `url(${HERO_IMAGE})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 22%',
+          }}
+        />
+        {/* scrim: darkens the nav strip and — more heavily — the lower third,
+            so hero copy reads over the canal/bridge instead of competing with
+            the umbrella for attention in the photo's visual center */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.05) 22%, rgba(0,0,0,0.1) 42%, rgba(0,0,0,0.6) 66%, rgba(0,0,0,0.72) 100%)',
           }}
         />
 
@@ -82,17 +70,19 @@ export default function Landing() {
             </div>
           </header>
 
-          {/* hero copy + prompt */}
+          {/* hero copy + prompt — anchored to the lower third, over the darker
+              canal/bridge, so it doesn't compete with the umbrella for the eye */}
           <section
             style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'center',
+              justifyContent: 'flex-end',
               maxWidth: 780,
               width: '100%',
               margin: '0 auto',
               padding: 'clamp(20px, 5vw, 24px)',
+              paddingBottom: 'clamp(48px, 8vh, 88px)',
               animation: 'fadeUp .5s ease both',
             }}
           >
