@@ -1,96 +1,128 @@
 <div align="center">
 
+<img src=".github/assets/icon.svg" width="56" height="56" alt="Cue" />
+
 # Cue
 
-**Presentation decks that are working web apps.**
+**Turn a single prompt into a presentation that's actually a working web app.**
 
-One prompt in — Cue builds a deck where every slide is a live, responsive web page.
-3D, animation, live data, working prototypes, and whatever you can imagine. Just tell Cue.
+Every slide is real HTML/CSS/JS — not an image, not a PDF. Animations, live charts,
+interactive components, whatever you can describe. Free, open source, no account needed.
+
+[Quick start](#quick-start-2-minutes) · [How it works](#how-it-works) · [Contributing](#contributing)
 
 </div>
 
----
+<br>
 
-Cue is a v0.dev / Lovable-style product for **decks**: describe what you want on the
-landing page, and Cue generates a [bolt-slides](https://github.com/stackblitz/bolt-slides)
-deck — chat on the left, a live preview of the deck on the right, full-screen when you
-want it, streamed step-by-step as it's built. Every deck is public and shows up in the
-community gallery with a real live-rendered preview — Cue is open source and has no
-accounts; see **BYOK** below for using your own API key instead of the shared default.
+<img src=".github/assets/hero.webp" alt="Cue landing page — describe your deck in one prompt" width="100%" />
 
-## Stack
+<br>
 
-| Layer     | Tech |
-|-----------|------|
-| Frontend  | React + Vite + TanStack Router; live preview via a same-origin in-browser transpile+render runtime |
-| Backend   | Go + Gin — streams generation over SSE, including a live agent step feed |
-| Database  | Postgres + pgvector (deck store + embeddings for future gallery search) |
-| Deck engine | The bolt-slides engine + component library (fixed); the model authors `App.tsx` + `tokens.css` |
+## What is this?
 
-The generated artifact is always the same shape — a bolt-slides deck — so the model only
-writes the slide content (`App.tsx`) and theme (`tokens.css`), which is what makes reliable
-generation + live preview tractable. Generation runs a compile-check + retry loop
-(`server/compile.go`) so broken output never reaches the user as a blank pane.
+You type what you want — *"a pitch deck for a startup building an AI copilot for
+accountants"* — and Cue generates a complete, multi-slide deck: cover slide, content
+slides, a closing slide, all in a consistent theme it designs on the fly. You can watch
+it think, and you can talk to it afterward to change anything ("make slide 3 punchier,"
+"swap the color theme to green").
 
-## Run it locally
+<img src=".github/assets/builder.webp" alt="Cue's builder — chat on the left, live deck preview on the right" width="100%" />
 
-Prereqs: **Docker** (must be running before `./dev.sh` — it waits on the Postgres
-container), **Go 1.22+**, **Node 20+**.
+Under the hood, every deck is a small React app (`App.tsx` + `tokens.css`) rendered by a
+fixed, hand-built slide engine — so it's reliable (the model can't break the layout
+system, only fill it in) and it's a *real webpage* the whole way through, not a
+generated screenshot.
+
+## Quick start (2 minutes)
+
+You'll need **Docker** running, **Go 1.22+**, and **Node 20+**.
 
 ```bash
+git clone https://github.com/sasdeployer/Cue-AI.git
+cd Cue-AI
 ./dev.sh
 ```
 
-That brings up Postgres+pgvector (Docker), the Gin server (`:8080`), and the web app
-(`:5273`), and re-syncs the deck engine reference on every start. Open **http://localhost:5273**.
+That's it — `dev.sh` starts Postgres, the API server, and the web app, and opens
+everything up on **http://localhost:5273**. You don't need an API key to try it: with no
+key configured, Cue runs in **canned mode** and hands back a real sample deck so you can
+see the whole flow working end to end.
 
-Or run each piece by hand:
+Want it to actually generate decks with AI? Copy `.env.example` to `.env` and drop in a key:
 
 ```bash
-docker compose up -d db                 # Postgres + pgvector on :5432
-cd server && go run .                    # Gin API on :8080 (reads ../.env)
-cd web && npm install && npm run dev     # web on :5273
+cp .env.example .env
+# then edit .env and set OPENAI_API_KEY=sk-... (or ANTHROPIC_API_KEY=sk-ant-...)
 ```
 
-## AI generation
+Restart the server (`cd server && go run .`) and you're generating real decks.
 
-Without a key, the server runs in **canned mode** — it returns a valid sample deck so the
-whole app is demoable. For real AI-authored decks, copy `.env.example` to `.env` (repo
-root) and add a key:
+> **New to this codebase?** `CLAUDE.md` has the full architecture tour, every design
+> decision explained, and the gotchas that'll save you time (like: the server doesn't
+> hot-reload, so you'll need to restart it after backend changes). Read it before you
+> go spelunking — it'll answer most of your "wait, why does this work this way?"
+> questions.
 
-```
-OPENAI_API_KEY=sk-...        # preferred if both are set
-OPENAI_MODEL=gpt-5.2
-ANTHROPIC_API_KEY=sk-ant-...  # used if no OpenAI key
-ANTHROPIC_MODEL=claude-sonnet-5
-```
-
-then restart the server. `server/llm.go` puts this behind an `LLMClient` interface, so
-the provider is swappable; `server/agent.go` runs an actual tool-using agent loop (not
-just a single completion call) and streams its real activity as a step feed in the UI.
-
-### BYOK (bring your own key)
-
-The key above is the server's *default* — anyone using the app can instead add their own
-OpenAI or Anthropic key from the **Settings** page (`/dashboard`). It's encrypted with
-Web Crypto before it ever touches `localStorage`, decrypted only in-browser, and sent
-per-request as an `X-User-OpenAI-Key` / `X-User-Anthropic-Key` header — the server never
-logs or stores it, just uses it to build a one-off client for that single request.
-
-## Layout
+## How it works
 
 ```
-web/                       React product app (landing, builder, gallery)
-  src/deck-runtime/         same-origin transpile+render runtime for the live preview
-  src/deck-template/        the FIXED bolt-slides engine, synced by dev.sh
-server/                    Gin API: generate (SSE + step feed) / list / get / edit
-  agent.go                  tool-using LLM agent loop
-  compile.go                compile-check before a deck is ever shown
-db/init.sql                schema (decks + pgvector)
-docker-compose.yml         Postgres + pgvector
-docs/                      design specs
+you type a prompt
+      │
+      ▼
+Go server calls an LLM (OpenAI/Anthropic) with a tool-using agent loop
+      │  → the model can research the web (a fetch_url tool) before writing
+      ▼
+model writes exactly two files: App.tsx (the slides) + tokens.css (the theme)
+      │
+      ▼
+server compile-checks the output against the fixed slide engine — retries
+silently if it's broken, so you only ever see a working deck
+      │
+      ▼
+deck streams to your browser, live, step by step — you watch it get built
 ```
 
-See **`CLAUDE.md`** for full architecture detail, current branding/theme state, known
-gotchas, and what's explicitly deferred — read that before making assumptions about
-what's already built.
+The whole reason this is reliable is that the model's job is small and constrained: it
+never touches the engine, the components, or the layout system — just the content and
+theme. That's what makes "one prompt → a working app" actually work instead of being a
+demo that breaks the moment you ask for something slightly unusual.
+
+## Bring your own key (BYOK)
+
+Cue runs with a shared default key so anyone can try it for free. If you'd rather use
+your own OpenAI or Anthropic account, open **Settings** in the app and paste your key in
+— it's encrypted in your own browser (never sent to us to store), and used only for your
+own generations. No signup, no account, nothing to remember.
+
+## Project layout
+
+```
+web/                  the React app (landing page, builder, gallery)
+  src/deck-runtime/      renders generated decks live, safely, in the browser
+  src/deck-template/     the fixed slide engine + component library
+server/               the Go API
+  agent.go               the tool-using LLM agent loop
+  compile.go              checks a deck compiles before you ever see it
+db/init.sql           database schema (Postgres + pgvector)
+docs/                 design notes from past features
+```
+
+## Contributing
+
+Issues and PRs are welcome — this is a young project and there's plenty to build
+(see `CLAUDE.md`'s "Deferred" section for what's intentionally not done yet, like a
+proper logo mark). Before diving into the code:
+
+1. Read **`CLAUDE.md`** — it's kept up to date with the real architecture and will save
+   you from re-discovering things the hard way.
+2. Run `./dev.sh` and generate a few decks so you have a feel for the product.
+3. `cd web && npx tsc -p tsconfig.app.json --noEmit` and `cd server && go build ./...`
+   before opening a PR — both are fast and catch real breakage.
+
+## License
+
+MIT — see `LICENSE`. Cue's slide engine started as a fork of
+[bolt-slides](https://github.com/stackblitz/bolt-slides) by StackBlitz (also MIT); the
+rest of the product — the AI generation pipeline, the live in-browser runtime, the
+step-by-step build feed, BYOK, everything else — was built from there.
