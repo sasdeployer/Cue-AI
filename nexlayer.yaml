@@ -1,0 +1,20 @@
+application:
+  name: cue-ai
+  pods:
+    - name: app
+      image: "registry.nexlayer.io/user_01kdnssb5ktgqr1mawtnz48s00/cue-ai:9f8d315-fix3"
+      path: /
+      servicePorts:
+        - 8080
+      vars:
+        PORT: "8080"
+        HOSTNAME: "0.0.0.0"
+        DATABASE_URL: "postgres://app:${POSTGRES_PASSWORD}@db.pod:5432/app?sslmode=disable"
+    - name: db
+      image: mirror.gcr.io/pgvector/pgvector:pg16
+      servicePorts:
+        - 5432
+      vars:
+        POSTGRES_USER: cueai
+        POSTGRES_PASSWORD: cueai
+        POSTGRES_DB: cueai
