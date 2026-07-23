@@ -14,8 +14,8 @@ schema_version: "1"
 
 project:
   name: cue-ai
-  runtime: node
-  port: 5273
+  runtime: 
+  port: 80
   live_url: "https://zen-antelope-cue-ai.cloud.nexlayer.ai"
   deploy_branch: nexlayer
   repo: "https://github.com/sasdeployer/Cue-AI"
@@ -129,7 +129,7 @@ dockerfile:
       COPY package*.json ./
       RUN npm ci --only=production
       COPY . .
-      EXPOSE 5273
+      EXPOSE 80
       CMD ["node", "server.js"]
 
     python: |
@@ -138,8 +138,8 @@ dockerfile:
       COPY requirements.txt .
       RUN pip install --no-cache-dir -r requirements.txt
       COPY . .
-      EXPOSE 5273
-      CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5273"]
+      EXPOSE 80
+      CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
 
     go: |
       FROM mirror.gcr.io/library/golang:1.23-alpine AS builder
@@ -150,7 +150,7 @@ dockerfile:
       RUN CGO_ENABLED=0 go build -o server .
       FROM mirror.gcr.io/library/alpine:3.20
       COPY --from=builder /app/server /server
-      EXPOSE 5273
+      EXPOSE 80
       CMD ["/server"]
 
 # ── CI/CD REFERENCE ──────────────────────────────────────────────────────────

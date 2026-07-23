@@ -14,19 +14,17 @@ COPY web/ ./
 RUN npm run build
 
 FROM mirror.gcr.io/library/golang:1.23-alpine AS backend-builder
-# The build log shows 'github.com/gin-contrib/cors@v1.7.7 requires go >= 1.25.0'
-# Since Go 1.25/1.26 are not yet stable/standard in alpine, we use GOTOOLCHAIN=auto
-# and a newer base if available, or force the toolchain to download the required version.
 ENV GOTOOLCHAIN=auto
 WORKDIR /app-backend
 COPY server/go.mod server/go.sum ./
-# Patch go.mod to use a version that allows the toolchain to manage dependencies
+# The repo has a typo (1.26.5). We force it to 1.23 but keep GOTOOLCHAIN=auto 
+# to allow the compiler to fetch the actual required toolchain for dependencies like gin-contrib/cors.
 RUN sed -i 's/go 1.26.5/go 1.23/g' go.mod
 RUN go mod download
 COPY server/ ./
 RUN go build -o main .
 
-FROM mirror.gcr.io/library/alpine:latest
+FROM mirror.gcr.io/library/alpine:3.20
 WORKDIR /app
 RUN apk add --no-cache ca-certificates
 COPY --from=backend-builder /app-backend/main .
