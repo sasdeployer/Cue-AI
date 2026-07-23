@@ -7,44 +7,58 @@ This file is the authoritative, pinned build solution for this repo. Nexlayer us
 ```dockerfile
 FROM mirror.gcr.io/library/node:22-alpine AS frontend-builder
 WORKDIR /app-frontend
-COPY package*.json ./
+COPY web/package*.json ./
 RUN npm install
-COPY . .
+COPY web/ ./
 RUN npm run build
 
-# Use Go 1.23
 FROM mirror.gcr.io/library/golang:1.23-alpine AS backend-builder
-RUN apk add --no-cache build-base
+# The build log shows 'github.com/gin-contrib/cors@v1.7.7 requires go >= 1.25.0'
+# Since Go 1.25/1.26 are not yet stable/standard in alpine, we use GOTOOLCHAIN=auto
+# and a newer base if available, or force the toolchain to download the required version.
+ENV GOTOOLCHAIN=auto
 WORKDIR /app-backend
-
-# Copy go.mod and go.sum
 COPY server/go.mod server/go.sum ./
+# Patch go.mod to use a version that allows the toolchain to manage dependencies
+RUN sed -i 's/go 1.26.5/go 1.23/g' go.mod
+RUN go mod download
+COPY server/ ./
+RUN go build -o main .
 
-# The build fails because gin-contrib/cors@v1.7.7 requires go >= 1.25.0.
-# Since 1.25.0 does not exist, this is a dependency bug or typo in their module.
-# To fix this, we must force the go.mod to a version we actually have (1.23) 
-# AND use 'go mod edit' to override the requirement for the specific problematic module
-# before running download/tidy.
-
-RUN sed -i 's/^go [0-9.]*/go 1.23/' go.mod
-RUN go mod edit -droprequire github.com/gin-contrib/cors
-RUN go mod edit -require github.com/gin-contrib/cors@v1.7.7
-
-# Disable toolchain downloads and force use of local Go 1.23
-ENV GOTOOLCHAIN=local
-RUN go mod download || go mod tidy
-
-COPY server/ . 
-RUN CGO_ENABLED=0 GOOS=linux go build -o server .
-
-FROM mirror.gcr.io/library/golang:1.23-alpine
+FROM mirror.gcr.io/library/alpine:latest
 WORKDIR /app
-COPY --from=backend-builder /app-backend/server .
-COPY --from=frontend-builder /app-frontend/dist ./web/dist
+RUN apk add --no-cache ca-certificates
+COPY --from=backend-builder /app-backend/main .
+COPY --from=frontend-builder /app-frontend/dist ./dist
 
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 EXPOSE 8080
 
-CMD ["./server"]
+CMD ["./main"]
+```
+
+## Fixed nexlayer.yaml
+
+```yaml
+application:
+  name: Cue-AI
+  pods:
+    - name: app
+      image: "# filled by pipeline"
+      path: /
+      servicePorts:
+        - 8080
+      vars:
+        PORT: "8080"
+        HOSTNAME: "0.0.0.0"
+        DATABASE_URL: "postgres://cueai:cueai@db.pod:5432/cueai?sslmode=disable"
+    - name: db
+      image: pgvector/pgvector:pg16
+      servicePorts:
+        - 5432
+      vars:
+        POSTGRES_USER: cueai
+        POSTGRES_PASSWORD: cueai
+        POSTGRES_DB: cueai
 ```
