@@ -79,22 +79,13 @@ OPENAI_API_KEY=your_key
 |-----|----------|-------|------|
 | `app` | `PORT` | `"8080"` | plain |
 | `app` | `HOSTNAME` | `"0.0.0.0"` | plain |
-| `app` | `DATABASE_URL` | `"postgres://cueai:${POSTGRES_PASSWORD}@db.pod:5432/cueai?sslmode=disable"` | inter-pod |
+| `app` | `DATABASE_URL` | `"postgres://cueai:${POSTGRES_PASSWORD}@postgres.pod:5432/cueai?sslmode=disable"` | inter-pod |
 | `app` | `ALLOW_ORIGIN` | `"<% URL %>"` | plain |
-| `app` | `ANTHROPIC_API_KEY` | `"${ANTHROPIC_API_KEY}"` | inter-pod |
-| `app` | `ANTHROPIC_MODEL` | `"claude-3-5-sonnet-20240620"` | plain |
 | `app` | `OPENAI_API_KEY` | `"${OPENAI_API_KEY}"` | inter-pod |
-| `app` | `OPENAI_MODEL` | `"gpt-4o"` | plain |
-| `app` | `OPENAI_REASONING_EFFORT` | `"medium"` | plain |
-| `db` | `POSTGRES_USER` | `"cueai"` | plain |
-| `db` | `POSTGRES_PASSWORD` | _(set via Nexlayer dashboard)_ | secret |
-| `db` | `POSTGRES_DB` | `"cueai"` | plain |
-
-### Secrets Required
-
-Set these in the Nexlayer dashboard before deploying:
-
-- `POSTGRES_PASSWORD` (`db` pod)
+| `app` | `ANTHROPIC_API_KEY` | `"${ANTHROPIC_API_KEY}"` | inter-pod |
+| `postgres` | `POSTGRES_USER` | `"cueai"` | plain |
+| `postgres` | `POSTGRES_PASSWORD` | `"${POSTGRES_PASSWORD}"` | inter-pod |
+| `postgres` | `POSTGRES_DB` | `"cueai"` | plain |
 
 ### nexlayer.yaml
 
@@ -103,28 +94,24 @@ application:
   name: cue-ai
   pods:
     - name: app
-      image: "registry.nexlayer.io/user_01kdnssb5ktgqr1mawtnz48s00/cue-ai:9f8d315-fix4"
+      image: "registry.nexlayer.io/user_01kdnssb5ktgqr1mawtnz48s00/cue-ai:9f8d315-fix5"
       path: /
       servicePorts:
         - 8080
       vars:
         PORT: "8080"
         HOSTNAME: "0.0.0.0"
-        DATABASE_URL: "postgres://cueai:${POSTGRES_PASSWORD}@db.pod:5432/cueai?sslmode=disable"
+        DATABASE_URL: "postgres://cueai:${POSTGRES_PASSWORD}@postgres.pod:5432/cueai?sslmode=disable"
         ALLOW_ORIGIN: "<% URL %>"
-        ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
-        ANTHROPIC_MODEL: "claude-3-5-sonnet-20240620"
         OPENAI_API_KEY: "${OPENAI_API_KEY}"
-        OPENAI_MODEL: "gpt-4o"
-        OPENAI_REASONING_EFFORT: "medium"
-    - name: db
-      image: mirror.gcr.io/pgvector/pgvector:pg16
-      path: /db
+        ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+    - name: postgres
+      image: mirror.gcr.io/library/postgres:16-alpine
       servicePorts:
         - 5432
       vars:
         POSTGRES_USER: "cueai"
-        POSTGRES_PASSWORD: "cueai"
+        POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
         POSTGRES_DB: "cueai"
 ```
 <!-- nexlayer:end -->
@@ -154,7 +141,7 @@ application:
 
 ## Nexlayer Configuration
 <!-- nexlayer:section agent-managed=nexlayer_config -->
-**Last deployed:** 2026-07-23T04:34:51Z  
+**Last deployed:** 2026-07-23T04:36:56Z  
 **Live URL:** https://zen-antelope-cue-ai.cloud.nexlayer.ai  
 **Runtime:**  · **Port:** auto-detected  
 **Deploy branch:** nexlayer  
@@ -164,28 +151,24 @@ application:
   name: cue-ai
   pods:
     - name: app
-      image: "registry.nexlayer.io/user_01kdnssb5ktgqr1mawtnz48s00/cue-ai:9f8d315-fix4"
+      image: "registry.nexlayer.io/user_01kdnssb5ktgqr1mawtnz48s00/cue-ai:9f8d315-fix5"
       path: /
       servicePorts:
         - 8080
       vars:
         PORT: "8080"
         HOSTNAME: "0.0.0.0"
-        DATABASE_URL: "postgres://cueai:${POSTGRES_PASSWORD}@db.pod:5432/cueai?sslmode=disable"
+        DATABASE_URL: "postgres://cueai:${POSTGRES_PASSWORD}@postgres.pod:5432/cueai?sslmode=disable"
         ALLOW_ORIGIN: "<% URL %>"
-        ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
-        ANTHROPIC_MODEL: "claude-3-5-sonnet-20240620"
         OPENAI_API_KEY: "${OPENAI_API_KEY}"
-        OPENAI_MODEL: "gpt-4o"
-        OPENAI_REASONING_EFFORT: "medium"
-    - name: db
-      image: mirror.gcr.io/pgvector/pgvector:pg16
-      path: /db
+        ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+    - name: postgres
+      image: mirror.gcr.io/library/postgres:16-alpine
       servicePorts:
         - 5432
       vars:
         POSTGRES_USER: "cueai"
-        POSTGRES_PASSWORD: "cueai"
+        POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
         POSTGRES_DB: "cueai"
 ```
 <!-- nexlayer:end -->
@@ -195,6 +178,7 @@ application:
 | Date | Status | Notes |
 |------|--------|-------|
 | 2026-07-23T04:18:01Z | analyzed | initial repo analysis |
-| 2026-07-23T04:34:51Z | success | deployed https://zen-antelope-cue-ai.cloud.nexlayer.ai |
+| 2026-07-23T04:36:56Z | success | deployed https://zen-antelope-cue-ai.cloud.nexlayer.ai |
 <!-- nexlayer:end -->
+
 
