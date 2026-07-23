@@ -39,8 +39,8 @@ generated screenshot.
 You'll need **Docker** running, **Go 1.22+**, and **Node 20+**.
 
 ```bash
-git clone https://github.com/sasdeployer/Cue-AI.git
-cd Cue-AI
+git clone https://github.com/sasdeployer/cue-ai.git
+cd cue-ai
 ./dev.sh
 ```
 
@@ -123,6 +123,6 @@ proper logo mark). Before diving into the code:
 ## License
 
 MIT — see `LICENSE`. Cue's slide engine started as a fork of
-[bolt-slides](https://github.com/stackblitz/bolt-slides) by StackBlitz (also MIT); the
-rest of the product — the AI generation pipeline, the live in-browser runtime, the
-step-by-step build feed, BYOK, everything else — was built from there.
+[bolt-slides](https://github.com/stackblitz/bolt-slides) by StackBlitz (also MIT, see
+`NOTICE.md`); the rest of the product — the AI generation pipeline, the live in-browser
+runtime, the step-by-step build feed, BYOK, everything else — is original work.
