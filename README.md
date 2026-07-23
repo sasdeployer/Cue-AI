@@ -6,8 +6,9 @@
 
 **Turn a single prompt into a presentation that's actually a working web app.**
 
-Every slide is real HTML/CSS/JS — not an image, not a PDF. Animations, live charts,
-interactive components, whatever you can describe. Free, open source, no account needed.
+Every slide is a real React component — not an image, not a PDF. Animations, live
+charts, interactive components, whatever you can describe. Free, open source, no
+account needed.
 
 [Quick start](#quick-start-2-minutes) · [How it works](#how-it-works) · [Contributing](#contributing)
 
@@ -30,9 +31,11 @@ it think, and you can talk to it afterward to change anything ("make slide 3 pun
 <img src=".github/assets/builder.webp" alt="Cue's builder — chat on the left, live deck preview on the right" width="100%" />
 
 Under the hood, every deck is a small React app (`App.tsx` + `tokens.css`) rendered by a
-fixed, hand-built slide engine — so it's reliable (the model can't break the layout
-system, only fill it in) and it's a *real webpage* the whole way through, not a
-generated screenshot.
+fixed, hand-built slide engine — a classic paged deck with a thumbnail sidebar, grid
+overview, click-to-build reveals, and synced presenter mode, all inherited from
+[bolt-slides](https://github.com/stackblitz/bolt-slides). It's a *real webpage* the
+whole way through, not a generated screenshot — see **How it works** below for why
+that's reliable rather than fragile.
 
 ## Quick start (2 minutes)
 
